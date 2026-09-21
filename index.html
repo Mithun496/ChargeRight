@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChargeRight - Freelancer Pricing Assistant</title>
+<style>
+:root{
+  --bg:#f5f7fb;--card:#fff;--ink:#101828;--muted:#667085;--line:#e4e7ec;
+  --accent:#6d5dfc;--accent2:#5146e5;--soft:#f0efff;--ok:#087443;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.nav{max-width:1120px;margin:auto;padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:22px;font-weight:850;letter-spacing:-.5px}.brand span{color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:42px 22px}
+.hero{text-align:center;max-width:800px;margin:0 auto 34px}
+.pill{display:inline-block;background:var(--soft);color:var(--accent2);padding:7px 12px;border-radius:999px;font-weight:750;font-size:13px}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.03;margin:16px 0 12px;letter-spacing:-2px}
+.hero p{font-size:18px;color:var(--muted);margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 5px 22px rgba(16,24,40,.04)}
+.card h2{margin:0 0 18px;font-size:20px}
+.field{margin:14px 0}.field label{display:block;font-size:13px;font-weight:750;margin-bottom:7px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #d0d5dd;border-radius:10px;padding:12px;background:#fff;color:var(--ink);outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(109,93,252,.12)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:11px;padding:13px 16px;font-weight:800;cursor:pointer;transition:.15s transform,.15s background}
+button:active{transform:translateY(1px)}
+.primary{background:var(--accent);color:#fff;width:100%;margin-top:8px}.primary:hover{background:var(--accent2)}
+.secondary{background:#fff;border:1px solid var(--line);color:var(--ink)}.secondary:hover{background:#f8f9fc}
+.result{display:none}.price{font-size:40px;font-weight:900;letter-spacing:-1px;margin:5px 0}.note{color:var(--muted);font-size:13px}
+.breakdown{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}.breakdown div{display:flex;justify-content:space-between;padding:7px 0}
+.small{font-size:12px;color:var(--muted)}.success{color:var(--ok);font-weight:750}
+.footer{text-align:center;color:var(--muted);padding:35px}
+.toolbox{margin-top:22px}.tool-intro{color:var(--muted);font-size:14px;margin-top:-8px;margin-bottom:20px}
+.tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tool-card{border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start}
+.tool-icon{font-size:28px}.tool-card h3{margin:7px 0;font-size:18px}.tool-card p{margin:0 0 14px}.tool-card button{margin-top:auto;width:auto}
+.status{font-size:10px;background:#f2f4f7;color:#667085;padding:4px 7px;border-radius:999px;vertical-align:middle;margin-left:4px}
+.status.live{background:#ecfdf3;color:#087443}
+.tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.tip-grid>div{padding:2px 0}
+.hint{background:#fafaff;border:1px solid #ece9ff;border-radius:12px;padding:12px;font-size:12px;color:#5b5b78;margin-top:10px}
+.toggle{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.toggle input{width:auto}
+.kicker{font-size:12px;font-weight:800;color:var(--accent2);text-transform:uppercase;letter-spacing:.08em}
+
+/* Quote editor */
+.quote-modal{display:none;position:fixed;inset:0;background:rgba(16,24,40,.62);align-items:center;justify-content:center;padding:22px;z-index:50}
+.quote-shell{background:#f8f9fc;border-radius:22px;width:min(1180px,100%);height:min(92vh,900px);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 25px 80px rgba(16,24,40,.25)}
+.quote-top{background:#fff;border-bottom:1px solid var(--line);padding:15px 18px;display:flex;align-items:center;justify-content:space-between}
+.quote-top-left{display:flex;align-items:center;gap:12px}.backdot{width:35px;height:35px;border-radius:10px;background:var(--soft);display:grid;place-items:center;color:var(--accent2);font-weight:900}
+.quote-top h2{font-size:17px;margin:0}.quote-top p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.quote-body{display:grid;grid-template-columns:390px 1fr;gap:0;flex:1;min-height:0}
+.quote-form{background:#fff;border-right:1px solid var(--line);overflow:auto;padding:22px}
+.quote-preview-wrap{overflow:auto;padding:24px;background:#eef1f7;display:flex;justify-content:center}
+.preview-paper{width:794px;min-height:1123px;background:#fff;box-shadow:0 12px 34px rgba(16,24,40,.14);position:relative;padding:42px 48px;color:#111827}
+.quote-brandline{height:6px;background:linear-gradient(90deg,var(--accent),#9b8fff);position:absolute;left:0;right:0;top:0}
+.preview-head{display:flex;justify-content:space-between;gap:24px;padding-top:8px}.preview-brand{font-weight:900;font-size:22px;letter-spacing:-.5px}.preview-brand span{color:var(--accent2)}
+.preview-sub{color:#6b7280;font-size:11px;margin-top:4px}.quote-title{text-align:right}.quote-title .label{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.12em;font-weight:800}.quote-title h1{margin:4px 0 2px;font-size:25px;letter-spacing:-.5px}.quote-title .qno{font-size:11px;color:#6b7280}
+.client-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:30px;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:18px 0}
+.preview-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;font-weight:800;margin-bottom:5px}.preview-value{font-size:12px;font-weight:750;color:#111827}.preview-muted{font-size:11px;color:#6b7280}
+.scope-box{margin-top:22px;padding:13px 15px;background:#f8f8ff;border:1px solid #ece9ff;border-radius:10px}.scope-box b{font-size:12px}.scope-box p{margin:5px 0 0;font-size:11px;line-height:1.5;color:#4b5563}
+.quote-items{width:100%;border-collapse:collapse;margin-top:23px}.quote-items th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;text-align:left;padding:9px 10px;background:#f7f7fb}.quote-items td{font-size:11px;padding:12px 10px;border-bottom:1px solid #e5e7eb}.quote-items th:last-child,.quote-items td:last-child{text-align:right}
+.total-row{display:flex;justify-content:flex-end;margin-top:18px}.total-box{width:245px;border-top:2px solid #111827;padding-top:12px}.total-line{display:flex;justify-content:space-between;font-size:11px;margin:7px 0}.grand{font-size:18px;font-weight:900;padding-top:6px}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-top:25px}.meta-card{padding:12px;border:1px solid #e5e7eb;border-radius:9px}.meta-card .preview-value{font-size:11px}
+.notes{margin-top:22px}.notes p{font-size:10.5px;line-height:1.55;color:#4b5563;white-space:pre-wrap}
+.payment{margin-top:20px;border-top:1px solid #e5e7eb;padding-top:16px}.payment p{font-size:10.5px;line-height:1.5;color:#4b5563;margin:4px 0}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:55px;margin-top:50px}.sigbox{border-top:1px solid #cbd5e1;padding-top:7px;font-size:10px;color:#6b7280}
+.quote-foot{position:absolute;bottom:28px;left:48px;right:48px;display:flex;justify-content:space-between;color:#9ca3af;font-size:9px;border-top:1px solid #eef0f4;padding-top:9px}
+.form-section{padding-bottom:12px;border-bottom:1px solid #eef0f4;margin-bottom:16px}.form-section h3{font-size:13px;margin:0 0 11px}.btn-row{display:flex;gap:10px}.btn-row button{flex:1}
+.quote-top-actions{display:flex;gap:8px}
+@media(max-width:930px){.quote-body{grid-template-columns:1fr}.quote-form{border-right:0;border-bottom:1px solid var(--line);max-height:45%;}.quote-preview-wrap{min-height:55%}}
+@media(max-width:760px){.grid,.tools-grid{grid-template-columns:1fr}.row,.tip-grid{grid-template-columns:1fr}.hero h1{letter-spacing:-1px}.quote-modal{padding:0}.quote-shell{width:100%;height:100vh;border-radius:0}.quote-body{grid-template-columns:1fr}.preview-paper{transform:scale(.78);transform-origin:top center;margin-bottom:-220px}.quote-preview-wrap{padding:12px}.preview-paper{min-height:1123px}}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  body>*{display:none!important}
+  #printRoot{display:block!important;position:static!important}
+  #printRoot .preview-paper{display:block!important;box-shadow:none!important;width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 14mm!important}
+  #printRoot .quote-foot{left:14mm;right:14mm;bottom:10mm}
+}
+#printRoot{display:none}
+</style>
+</head>
+<body>
+<header><div class="nav"><div class="brand">Charge<span>Right</span></div><div class="small">Freelancer Pricing Assistant</div></div></header>
+<main>
+<section class="hero">
+<span class="pill">FREE MVP</span>
+<h1>Know what to charge. Create the quote. Send it.</h1>
+<p>Estimate a practical project range from the actual workload, then turn it into a professional client quotation.</p>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2>1. Project details</h2>
+<div class="field"><label>Service</label><select id="service">
+<option value="reel">Instagram Reel / Short Video</option>
+<option value="youtube">YouTube Video Editing</option>
+<option value="thumbnail">Thumbnail Design</option>
+<option value="poster">Poster / Social Design</option>
+<option value="wedding">Wedding / Event Video</option>
+<option value="website">Landing Page / Website</option>
+</select></div>
+<div class="row">
+<div class="field"><label>Project / video length</label><select id="length">
+<option value="short">Short / under 60 sec</option><option value="medium">1-5 min</option><option value="long">5-15 min</option><option value="xl">15+ min</option>
+</select></div>
+<div class="field"><label>Editing / work level</label><select id="complexity"><option value="basic">Basic</option><option value="standard" selected>Standard</option><option value="advanced">Advanced</option><option value="premium">Premium / cinematic</option></select></div>
+</div>
+<div class="row">
+<div class="field"><label>Revisions</label><select id="revisions"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4+</option></select></div>
+<div class="field"><label>Deadline</label><select id="deadline"><option value="normal">3-7 days</option><option value="fast">1-2 days</option><option value="rush">Same day / urgent</option></select></div>
+</div>
+<div class="row">
+<div class="field"><label>Your experience</label><select id="experience"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="pro">Experienced</option></select></div>
+<div class="field"><label>Client type</label><select id="client"><option value="individual">Individual / small creator</option><option value="business">Small business</option><option value="agency">Agency / larger client</option></select></div>
+</div>
+<div class="field"><label>Creator audience / client reach (optional)</label><input id="audience" type="number" min="0" placeholder="e.g. 8500"></div>
+<div class="hint">Tip: audience size is only a small context signal. Workload, scope, quality and deadline drive the estimate.</div>
+<button class="primary" onclick="calculate()">Calculate my range</button>
+</section>
+
+<section class="card result" id="result">
+<h2>Your estimate</h2>
+<div class="small">Suggested project range</div>
+<div class="price" id="range">₹0 - ₹0</div>
+<div class="note">Use this as a negotiation starting point, not a guaranteed market rate.</div>
+<div class="breakdown" id="breakdown"></div>
+<div style="margin-top:18px"><span class="success">✓</span> You can adjust the final quote before sending it.</div>
+<button class="primary" onclick="openQuote()">Create professional quote</button>
+</section>
+</div>
+
+<section class="card toolbox">
+<h2>Your Freelancer Toolbox</h2>
+<p class="tool-intro">More tiny tools are coming. One problem at a time.</p>
+<div class="tools-grid">
+<div class="tool-card"><div class="tool-icon">🧾</div><h3>Quote Generator <span class="status live">LIVE</span></h3><p class="small">Turn your calculated price into a clean client-ready quotation.</p><button class="secondary" onclick="openQuote()">Open tool</button></div>
+<div class="tool-card"><div class="tool-icon">💵</div><h3>Invoice Maker <span class="status">SOON</span></h3><p class="small">Create simple invoices for freelance work.</p><button class="secondary" onclick="soon('Invoice Maker')">Coming soon</button></div>
+<div class="tool-card"><div class="tool-icon">⏱️</div><h3>Hourly Rate Calculator <span class="status">SOON</span></h3><p class="small">Work backwards from your monthly income goal.</p><button class="secondary" onclick="soon('Hourly Rate Calculator')">Coming soon</button></div>
+<div class="tool-card"><div class="tool-icon">📦</div><h3>Project Cost Splitter <span class="status">SOON</span></h3><p class="small">Separate editing, design, rush and revision costs.</p><button class="secondary" onclick="soon('Project Cost Splitter')">Coming soon</button></div>
+<div class="tool-card"><div class="tool-icon">📈</div><h3>Monthly Target Planner <span class="status">SOON</span></h3><p class="small">See how many projects you need to hit your target.</p><button class="secondary" onclick="soon('Monthly Target Planner')">Coming soon</button></div>
+<div class="tool-card"><div class="tool-icon">🧠</div><h3>Client Brief Builder <span class="status">SOON</span></h3><p class="small">Collect the exact project details before you start.</p><button class="secondary" onclick="soon('Client Brief Builder')">Coming soon</button></div>
+</div>
+</section>
+
+<section class="card" style="margin-top:22px">
+<h2>What makes the estimate different?</h2>
+<div class="tip-grid">
+<div><b>Workload first</b><p class="small">Duration, complexity and revisions influence the base work.</p></div>
+<div><b>Urgency matters</b><p class="small">Faster delivery can justify a rush premium.</p></div>
+<div><b>Experience matters</b><p class="small">The calculator adjusts the starting range rather than assuming everyone charges the same.</p></div>
+<div><b>Client context</b><p class="small">Client type and audience are secondary signals, never a guarantee of budget.</p></div>
+</div>
+</section>
+</main>
+<div class="footer">ChargeRight MVP - Pricing estimates are illustrative and should be customized to your market and agreement.</div>
+
+<!-- Quote Editor -->
+<div class="quote-modal" id="quoteModal">
+<div class="quote-shell">
+  <div class="quote-top">
+    <div class="quote-top-left">
+      <div class="backdot">←</div>
+      <div><h2>Create your client quote</h2><p>Make it look professional before you send it.</p></div>
+    </div>
+    <div class="quote-top-actions">
+      <button class="secondary" onclick="closeQuote()">Close</button>
+    </div>
+  </div>
+  <div class="quote-body">
+    <aside class="quote-form">
+      <div class="form-section">
+        <div class="kicker">Client</div>
+        <div class="field"><label>Client name *</label><input id="qClient" placeholder="e.g. Rahul Kumar"></div>
+        <div class="field"><label>Company / channel</label><input id="qCompany" placeholder="Optional"></div>
+        <div class="field"><label>Client email / phone</label><input id="qContact" placeholder="Optional"></div>
+      </div>
+      <div class="form-section">
+        <div class="kicker">Your details</div>
+        <div class="field"><label>Your name / brand *</label><input id="qFreelancer" placeholder="e.g. Mithun Editz"></div>
+        <div class="field"><label>Your email / phone</label><input id="qFreelancerContact" placeholder="Optional"></div>
+        <div class="field"><label>Website / Instagram</label><input id="qSocial" placeholder="@yourhandle or website"></div>
+      </div>
+      <div class="form-section">
+        <div class="kicker">Project & price</div>
+        <div class="field"><label>Project name</label><input id="qProject" value=""></div>
+        <div class="field"><label>Final quoted price *</label><input id="qFinal" type="number" min="0" step="50"></div>
+        <div class="field"><label>Quote style</label><select id="qDisplay"><option value="simple">Simple - show total only</option><option value="detailed">Detailed - show line item</option></select></div>
+        <div class="field"><label>Project description</label><textarea id="qDesc" rows="3" placeholder="Example: 1 edited YouTube video up to 10 minutes with 2 revision rounds."></textarea></div>
+      </div>
+      <div class="form-section">
+        <div class="kicker">Terms</div>
+        <div class="row">
+          <div class="field"><label>Delivery</label><input id="qDelivery" value=""></div>
+          <div class="field"><label>Revisions</label><input id="qRevisions" value=""></div>
+        </div>
+        <div class="field"><label>Payment terms</label><input id="qPayment" value="50% advance, 50% on final delivery"></div>
+        <div class="field"><label>Notes / exclusions</label><textarea id="qNotes" rows="3" placeholder="Add scope, exclusions, source-file policy, turnaround notes..."></textarea></div>
+      </div>
+      <div class="form-section">
+        <div class="kicker">Branding</div>
+        <div class="field"><label>Accent color</label><input id="qAccent" type="color" value="#6d5dfc" style="height:44px;padding:4px"></div>
+      </div>
+      <div class="btn-row">
+        <button class="secondary" onclick="copyQuote()">Copy</button>
+        <button class="primary" style="margin-top:0" onclick="printQuote()">Print / Save PDF</button>
+      </div>
+      <div class="hint">Your browser's PDF option will save a clean one-page quotation only - the rest of ChargeRight will not be printed.</div>
+    </aside>
+
+    <section class="quote-preview-wrap">
+      <div id="previewPaper" class="preview-paper">
+        <div class="quote-brandline" id="brandLine"></div>
+        <div class="preview-head">
+          <div>
+            <div class="preview-brand" id="pBrand">YOUR <span>BRAND</span></div>
+            <div class="preview-sub" id="pFreelancerContact">Creative & Digital Services</div>
+          </div>
+          <div class="quote-title">
+            <div class="label">Professional quotation</div>
+            <h1>Quotation</h1>
+            <div class="qno">Quote no. <span id="pQuoteNo">CR-000001</span> • <span id="pDate"></span></div>
+          </div>
+        </div>
+
+        <div class="client-row">
+          <div><div class="preview-label">Prepared for</div><div class="preview-value" id="pClient">Client name</div><div class="preview-muted" id="pCompany">Company / channel</div><div class="preview-muted" id="pContact">Client contact</div></div>
+          <div><div class="preview-label">Project</div><div class="preview-value" id="pProject">Project name</div><div class="preview-muted" id="pDelivery">Delivery</div><div class="preview-muted" id="pRevisions">Revisions</div></div>
+        </div>
+
+        <div class="scope-box"><b>Project summary</b><p id="pDesc">Your project description will appear here.</p></div>
+
+        <table class="quote-items" id="pItems"><thead><tr><th>Description</th><th>Amount</th></tr></thead>
+          <tbody><tr><td id="pService">Service</td><td id="pAmount">₹0</td></tr></tbody>
+        </table>
+
+        <div class="total-row"><div class="total-box">
+          <div class="total-line"><span>Estimated range</span><span id="pRange">₹0 - ₹0</span></div>
+          <div class="total-line grand"><span>Total</span><span id="pTotal">₹0</span></div>
+        </div></div>
+
+        <div class="meta-grid">
+          <div class="meta-card"><div class="preview-label">Payment</div><div class="preview-value" id="pPayment">50% advance, 50% final</div></div>
+          <div class="meta-card"><div class="preview-label">Quote status</div><div class="preview-value">Ready to confirm</div></div>
+          <div class="meta-card"><div class="preview-label">Contact</div><div class="preview-value" id="pSocial">Your contact</div></div>
+        </div>
+
+        <div class="notes"><div class="preview-label">Notes & terms</div><p id="pNotes">Add any scope, exclusions or payment notes in the editor.</p></div>
+
+        <div class="sign">
+          <div class="sigbox">Client approval / name</div>
+          <div class="sigbox">Prepared by / signature</div>
+        </div>
+        <div class="quote-foot"><span>Thank you for choosing us.</span><span>ChargeRight</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+
+<!-- print-only clone -->
+<div id="printRoot"></div>
+
+<script>
+let last={low:0,high:0,service:"",breakdown:[]};
+const INR=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n);
+
+function calculate(){
+  const service=document.getElementById('service').value;
+  const length=document.getElementById('length').value;
+  const complexity=document.getElementById('complexity').value;
+  const revisions=+document.getElementById('revisions').value;
+  const deadline=document.getElementById('deadline').value;
+  const experience=document.getElementById('experience').value;
+  const client=document.getElementById('client').value;
+  const audience=+document.getElementById('audience').value||0;
+
+  const bases={reel:700,youtube:1800,thumbnail:400,poster:500,wedding:5000,website:3500};
+  const names={reel:"Instagram Reel / Short Video",youtube:"YouTube Video Editing",thumbnail:"Thumbnail Design",poster:"Poster / Social Design",wedding:"Wedding / Event Video",website:"Landing Page / Website"};
+  const base=bases[service];
+  const lengthMult={short:.85,medium:1,long:1.55,xl:2.1}[length];
+  const compMult={basic:.75,standard:1,advanced:1.35,premium:1.75}[complexity];
+  const subtotal=base*lengthMult*compMult;
+  const revAdd=Math.max(0,revisions-2)*base*.12;
+  const rush=deadline==="fast"?subtotal*.18:deadline==="rush"?subtotal*.35:0;
+  const exp={beginner:.85,intermediate:1,pro:1.25}[experience];
+  const clientAdj={individual:.95,business:1.05,agency:1.15}[client];
+  const audienceAdj=audience>=100000?1.08:audience>=10000?1.04:1;
+
+  let low=Math.round(((subtotal+revAdd+rush)*exp*clientAdj*audienceAdj)/50)*50;
+  let high=Math.round((low*1.28)/50)*50;
+  low=Math.max(200,low);high=Math.max(low+100,high);
+
+  last={low,high,service:names[service],breakdown:[
+    ["Base workload",subtotal],["Extra revisions",revAdd],["Urgency",rush],
+    ["Experience/client context",Math.max(0,(subtotal+revAdd+rush)*(exp*clientAdj*audienceAdj-1))]
+  ]};
+
+  document.getElementById('range').textContent=`${INR(low)} - ${INR(high)}`;
+  document.getElementById('breakdown').innerHTML=last.breakdown.map(x=>`<div><span>${x[0]}</span><b>${INR(Math.round(x[1]))}</b></div>`).join('');
+  document.getElementById('result').style.display='block';
+  syncQuoteForm();
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function syncQuoteForm(){
+  const mid=Math.round(((last.low||0)+(last.high||0))/2/50)*50;
+  const deadline=document.getElementById('deadline');
+  const rev=document.getElementById('revisions');
+  if(document.getElementById('qProject')) document.getElementById('qProject').value=last.service||"";
+  if(document.getElementById('qFinal')) document.getElementById('qFinal').value=mid||"";
+  if(document.getElementById('qDelivery')) document.getElementById('qDelivery').value=deadline?.selectedOptions?.[0]?.text||"";
+  if(document.getElementById('qRevisions')) document.getElementById('qRevisions').value=rev?.selectedOptions?.[0]?.text||"";
+}
+
+function openQuote(){
+  if(!last.low) calculate();
+  syncQuoteForm();
+  document.getElementById('quoteModal').style.display='flex';
+  bindPreviewInputs();
+  updatePreview();
+}
+function closeQuote(){document.getElementById('quoteModal').style.display='none'}
+
+function bindPreviewInputs(){
+  ["qClient","qCompany","qContact","qFreelancer","qFreelancerContact","qSocial","qProject","qFinal","qDisplay","qDesc","qDelivery","qRevisions","qPayment","qNotes","qAccent"].forEach(id=>{
+    const el=document.getElementById(id); if(!el || el.dataset.bound==="1") return;
+    el.addEventListener("input",updatePreview); el.addEventListener("change",updatePreview); el.dataset.bound="1";
+  });
+}
+
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+function updatePreview(){
+  const accent=document.getElementById('qAccent')?.value||"#6d5dfc";
+  document.documentElement.style.setProperty("--accent",accent);
+  document.documentElement.style.setProperty("--accent2",accent);
+  document.getElementById('brandLine').style.background=`linear-gradient(90deg,${accent},#9b8fff)`;
+  const val=id=>document.getElementById(id)?.value?.trim()||"";
+  const client=val('qClient')||"Client name";
+  const company=val('qCompany')||"Company / channel";
+  const contact=val('qContact')||"Client contact";
+  const freelancer=val('qFreelancer')||"YOUR BRAND";
+  const freelancerContact=val('qFreelancerContact')||"Creative & Digital Services";
+  const social=val('qSocial')||freelancerContact;
+  const project=val('qProject')||last.service||"Project name";
+  const final=+val('qFinal')||0;
+  const desc=val('qDesc')||"Your project description will appear here.";
+  const delivery=val('qDelivery')||"-";
+  const revisions=val('qRevisions')||"-";
+  const payment=val('qPayment')||"50% advance, 50% on final delivery";
+  const notes=val('qNotes')||"Add any scope, exclusions or payment notes in the editor.";
+  const simple=val('qDisplay')!=="detailed";
+
+  document.getElementById('pClient').textContent=client;
+  document.getElementById('pCompany').textContent=company;
+  document.getElementById('pContact').textContent=contact;
+  document.getElementById('pBrand').innerHTML=escapeHtml(freelancer).replace(/(right|editz|studio)$/i,m=>`<span>${m}</span>`);
+  document.getElementById('pFreelancerContact').textContent=freelancerContact;
+  document.getElementById('pSocial').textContent=social;
+  document.getElementById('pProject').textContent=project;
+  document.getElementById('pDesc').textContent=desc;
+  document.getElementById('pDelivery').textContent="Delivery: "+delivery;
+  document.getElementById('pRevisions').textContent="Revisions: "+revisions;
+  document.getElementById('pAmount').textContent=INR(final);
+  document.getElementById('pTotal').textContent=INR(final);
+  document.getElementById('pRange').textContent=`${INR(last.low||0)} - ${INR(last.high||0)}`;
+  document.getElementById('pPayment').textContent=payment;
+  document.getElementById('pNotes').textContent=notes;
+  document.getElementById('pItems').style.display=simple?"none":"table";
+
+  const now=new Date();
+  document.getElementById('pDate').textContent=now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('pQuoteNo').textContent="CR-"+String(now.getTime()).slice(-6);
+  document.getElementById('pService').textContent=last.service||project;
+}
+
+function cloneForPrint(){
+  const root=document.getElementById('printRoot');
+  root.innerHTML="";
+  const clone=document.getElementById('previewPaper').cloneNode(true);
+  clone.id="printPreview";
+  root.appendChild(clone);
+}
+
+function printQuote(){
+  const client=document.getElementById('qClient').value.trim();
+  const final=+document.getElementById('qFinal').value||0;
+  if(!client){alert("Please enter the client name first.");document.getElementById('qClient').focus();return}
+  if(!final){alert("Please enter the final quoted price.");document.getElementById('qFinal').focus();return}
+  updatePreview();cloneForPrint();window.print();
+}
+
+function copyQuote(){
+  const client=document.getElementById('qClient')?.value?.trim()||"Client";
+  const company=document.getElementById('qCompany')?.value?.trim()||"";
+  const project=document.getElementById('qProject')?.value?.trim()||last.service;
+  const final=+(document.getElementById('qFinal')?.value||0);
+  const text=`QUOTATION - ChargeRight
+Prepared for: ${client}${company?" | "+company:""}
+Project: ${project}
+Final quote: ${INR(final)}
+Delivery: ${document.getElementById('qDelivery')?.value||"-"}
+Revisions: ${document.getElementById('qRevisions')?.value||"-"}
+Payment: ${document.getElementById('qPayment')?.value||"50% advance, 50% final delivery"}
+Notes: ${document.getElementById('qNotes')?.value||""}`;
+  navigator.clipboard.writeText(text).then(()=>alert("Quote copied!")).catch(()=>alert(text));
+}
+
+function soon(name){alert(name+" is planned for the next ChargeRight update.")}
+document.getElementById('quoteModal').addEventListener('click',e=>{if(e.target.id==='quoteModal')closeQuote()});
+</script>
+</body>
+</html>
